@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <h2 class="p-3">Tutorials</h2>
+    <div class="input-group">
+        <input type="search" id="search-input" class="form-control rounder" placeholder="Search by description" aria-label="Search" aria-describedby="search-addon" />
+    </div>
+    <div class="row p-3">
+        <div cladd="col">
+            Order by field:
+            <select class="form-select" id="select-ordering" aria-label="Ordering">
+                <option value="" selected>No ordering</option>
+                <option value="title">Title</option>
+                <option value="description">Description</option>
+                <option value="published">Published</option>
+            </select>
+        </div>
+        <div class="col">
+            Ascending / Descending
+            <select id="select-how-to-order" class="form-select" aria-label="Ordering">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+            </select>
+        </div>
+    </div>
+    <div class="row p-3">
+        <div class="col">
+            Page number: <input type="number" id="page-number" class="form-control rounden"/>
+        </div>
+        <div class="col">
+            Page size: <input type="number" id="page-size" class="form-control rounded"/>
+        </div>
+    </div>
+    <div class="row p-3">
+        <input type="submit" class="btn btn-success" onclick="applyFilters()" value="Submit">
+    </div>
+        <div class="list-group">
+    <% tutorials.forEach(function(tutorial) { %>
+        <div class="row px-3 py-1 w-100">
+        <div class="col py-1 bg-info">
+            <%=tutorial.title%>
+        </div>
+        <div class="col py-1 bg-info">
+            <%=tutorial.description%>
+        </div>
+        <div class="col py-1 bg-info">
+            <input type="checkbox" id="Published" name="Published"
+            <%= tutorial.published ?'checked':'unchecked'%> disabled >
+            <label for="Published">Published</label>
+        </div>
+    </div>
+    <% }); %>
+    </div>
+
+    <script>
+        function updateURL(url, filtersAdded) {
+            if (filtersAdded == 0) {
+                url += "?"
+            } else {
+                url += "&"
+            }
+            return url;
+        }
+
+        function applyFilters() {
+            let url = "http://localhost:3000/tutorials";
+            let filtersAdded = 0;
+            const searchFilter = document.getElementById("search-input").value;
+            if (searchFilter != "") {
+                url = updateURL(url, filtersAdded)
+                url += "description=" + searchFilter
+                filtersAdded++;
+            }
+
+            const orderingFilter = document.getElementById("select-ordering").value;
+            const howOrderFilter = document.getElementById("select-how-to-order").value;
+            if (orderingFilter != "") {
+                url = updateURL(url, filtersAdded)
+                url += "sort=" + orderingFilter + ":" + howOrderFilter
+                filtersAdded++;
+            }
+            const pageFilter = document.getElementById("page-number").value;
+            const sizeFilter = document.getElementById("page-size").value;
+            if ( pageFilter != "") {
+                url = updateURL(url, filtersAdded)
+                url += "page=" + pageFilter
+                filtersAdded++;
+            }
+            if (sizeFilter != "") {
+                url = updateURL(url, filtersAdded)
+                url += "size=" + sizeFilter
+                filtersAdded++;
+            }
+            window.location.href = url;
+        }
+    </script>
+</body>
+</html>
