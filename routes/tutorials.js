@@ -1,3 +1,4 @@
+var client = require('../redis.js');
 var express = require('express');
 var router = express.Router();
 var TutorialService = require("../services/TutorialService")
@@ -11,8 +12,18 @@ const getPagination = (page, size) => {
   return { limit, offset };
 };
 
+async function cache(req, res, next) {
+  const data = await client.get(req.originalUrl);
+  if (data !== null) {
+    res.render('tutorials', {tutorials: JSON.parse(data)});
+  } else {
+    next();
+  }
+}
+
 /* GET tutorials listing. */
-router.get('/', async function(req, res, next) {
+router.get('/', cache, async function(req, res, next) {
+  console.log('------ASKING THE DATABASE---------');
   const { sort, title, description, published, page, size} = req.query;
   const order = sort ? sort.split(',').map(pair => pair.split(':')) : [];
   const titleCondition = title ? { title: { [Op.like]: `%${title}%` } } : null;
@@ -21,6 +32,7 @@ router.get('/', async function(req, res, next) {
   const condition = {[Op.and]: [titleCondition, descCondition, publishedCondition]};
   const pagination = getPagination(page, size);
   const tutorials = await tutorialService.getAll(condition, order, pagination);
+  await client.set(req.originalUrl, JSON.stringify(tutorials));
   res.render('tutorials', {tutorials: tutorials});
 });
 
